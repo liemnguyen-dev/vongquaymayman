@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Vòng Quay May Mắn - GDCD</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>VÒNG QUAY MAY MẮN</h1>
+
+        <div class="admin-panel">
+            <h3>Cài đặt</h3>
+            <textarea id="student-list-input" placeholder="Danh sách HS (cách nhau bằng dấu phẩy)">An, Bình, Chi, Dương, Em, Giang</textarea>
+            <textarea id="json-input" placeholder="Bộ câu hỏi JSON"></textarea>
+            <div class="control-row">
+                <button onclick="importData()">Cập nhật Dữ liệu</button>
+                <button onclick="exportSample()">Lấy mẫu JSON</button>
+                <button onclick="resetSystem()" style="background:#e67e22">Reset Tất cả</button>
+            </div>
+            <div class="options">
+                <label><input type="checkbox" id="remove-student" checked> Loại bỏ HS đã trúng</label>
+                <label><input type="checkbox" id="no-repeat-q" checked> Không lặp lại câu hỏi</label>
+                <span> | Chế độ: 
+                    <input type="radio" name="q-count" value="1" checked> 1 câu 
+                    <input type="radio" name="q-count" value="2"> 2 câu
+                </span>
+            </div>
+        </div>
+
+        <div class="play-zone">
+            <div class="wheel-box">
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <div class="pointer"></div>
+                <button id="spin-btn">QUAY SỐ</button>
+            </div>
+            <div class="info-box">
+                <h2 id="student-name">Sẵn sàng chơi!</h2>
+                <div id="timer" class="hidden">15s</div>
+                <div id="remaining-info">HS còn lại: 0 | Câu còn lại: 0</div>
+            </div>
+        </div>
+
+        <div id="quiz-container" class="hidden">
+            <h2 id="question-text"></h2>
+            <div id="options-grid"></div>
+            <button id="check-btn" class="main-btn">KIỂM TRA ĐÁP ÁN</button>
+            <p id="feedback"></p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
