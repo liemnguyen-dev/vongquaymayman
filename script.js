@@ -1,5 +1,3 @@
-// 1. CẤU HÌNH ÂM THANH
-// Sử dụng các link âm thanh dự phòng chất lượng cao
 const spinSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
 const clapSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
 
@@ -9,10 +7,6 @@ let selectedAnswer = null, questionsToAnswer = 0, timerInterval, startAngle = 0;
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
 const nameDisplay = document.getElementById('student-name');
-
-// Đảm bảo âm thanh sẵn sàng
-spinSound.load();
-clapSound.load();
 
 window.onload = () => {
     const saved = localStorage.getItem('quizData');
@@ -31,7 +25,7 @@ function refreshStudents() {
 }
 
 function updateStatus() {
-    document.getElementById('remaining-info').innerText = `HS còn lại: ${activeStudents.length} | Câu còn lại: ${quizData.length - usedQuestions.length}`;
+    document.getElementById('remaining-info').innerText = `Học sinh: ${activeStudents.length} | Câu hỏi: ${quizData.length - usedQuestions.length}`;
 }
 
 function drawWheel() {
@@ -52,32 +46,24 @@ function drawWheel() {
         ctx.fillStyle = "white";
         ctx.font = "bold 14px Arial";
         ctx.textAlign = "right";
-        ctx.fillText(name.substring(0,10), 170, 5);
+        ctx.fillText(name.substring(0,12), 175, 5);
         ctx.restore();
     });
 }
 
-// 2. LOGIC QUAY VÀ ÂM THANH QUAY
 document.getElementById('spin-btn').onclick = () => {
-    if (!activeStudents.length || !quizData.length) return alert("Kiểm tra lại HS hoặc Câu hỏi!");
-    
+    if (!activeStudents.length || !quizData.length) return alert("Vui lòng kiểm tra danh sách HS và Câu hỏi!");
     document.getElementById('quiz-container').classList.add('hidden');
     nameDisplay.classList.remove('highlight-name');
-    nameDisplay.innerText = "Đang quay...";
-
-    // PHÁT ÂM THANH QUAY
+    nameDisplay.innerText = "🌀 Đang quay...";
     spinSound.currentTime = 0;
-    spinSound.play().catch(e => console.log("Trình duyệt chặn âm thanh tự động: ", e));
-    
-    let spinTime = 0, totalTime = Math.random() * 3000 + 4000;
+    spinSound.play().catch(() => {});
+
+    let spinTime = 0, totalTime = Math.random() * 2000 + 4000;
     const animate = () => {
         spinTime += 30;
-        if (spinTime >= totalTime) { 
-            spinSound.pause(); // Dừng âm thanh khi vòng quay dừng
-            stopWheel(); 
-            return; 
-        }
-        startAngle += ((totalTime - spinTime) / totalTime) * 0.4;
+        if (spinTime >= totalTime) { spinSound.pause(); stopWheel(); return; }
+        startAngle += ((totalTime - spinTime) / totalTime) * 0.45;
         drawWheel();
         requestAnimationFrame(animate);
     };
@@ -117,17 +103,22 @@ function showQuestion() {
     grid.innerHTML = "";
     selectedAnswer = null;
 
+    // Tự động chỉnh cột: 2 đáp án (Đúng/Sai) -> 1 cột to, 4 đáp án -> 2 cột
+    grid.style.gridTemplateColumns = currentQuestion.a.length <= 2 ? "1fr" : "1fr 1fr";
+
     currentQuestion.a.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = "option-btn";
         btn.innerText = opt;
         btn.onclick = () => {
-            document.querySelectorAll('.option-btn').forEach(b => b.style.background = "white");
+            document.querySelectorAll('.option-btn').forEach(b => {b.style.background="white"; b.style.color="#2c3e50";});
             btn.style.background = "#3498db";
+            btn.style.color = "white";
             selectedAnswer = i;
         };
         grid.appendChild(btn);
     });
+
     document.getElementById('quiz-container').classList.remove('hidden');
     document.getElementById('feedback').innerText = "";
     startTimer();
@@ -151,34 +142,25 @@ function startTimer() {
     }, 1000);
 }
 
-// 3. KIỂM TRA & ÂM THANH VỖ TAY
 document.getElementById('check-btn').onclick = () => {
     if (selectedAnswer === null) return alert("Chọn đáp án!");
     clearInterval(timerInterval);
     const btns = document.querySelectorAll('.option-btn');
     const correctIdx = currentQuestion.correct;
+    const feedback = document.getElementById('feedback');
 
     if (selectedAnswer === correctIdx) {
-        document.getElementById('feedback').innerText = "ĐÚNG RỒI! 🎉";
-        document.getElementById('feedback').style.color = "green";
-        
-        // PHÁT ÂM THANH VỖ TAY
+        feedback.innerText = "CHÍNH XÁC! 🎉";
+        feedback.style.color = "#27ae60";
         clapSound.currentTime = 0;
-        clapSound.play().catch(e => console.log("Lỗi âm thanh: ", e));
-        
+        clapSound.play().catch(() => {});
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        
         questionsToAnswer--;
-        if (questionsToAnswer > 0) {
-            setTimeout(() => {
-                alert("Mời bạn trả lời câu tiếp theo!");
-                showQuestion();
-            }, 2000);
-        }
+        if (questionsToAnswer > 0) setTimeout(showQuestion, 2500);
     } else {
-        const correctText = currentQuestion.a[correctIdx];
-        document.getElementById('feedback').innerHTML = `SAI! ❌ <br>Đáp án đúng là: <b>${correctText}</b>`;
-        document.getElementById('feedback').style.color = "red";
+        const txt = currentQuestion.a[correctIdx];
+        feedback.innerHTML = `SAI RỒI! ❌ <br>Đáp án đúng là: <b style="color:#2c3e50">${txt}</b>`;
+        feedback.style.color = "#e74c3c";
         btns[correctIdx].style.background = "#2ecc71";
         btns[correctIdx].style.color = "white";
         btns[selectedAnswer].style.background = "#e74c3c";
@@ -188,18 +170,21 @@ document.getElementById('check-btn').onclick = () => {
     btns.forEach(b => b.disabled = true);
 };
 
-// CÁC HÀM TIỆN ÍCH GIỮ NGUYÊN
 function importData() {
     try {
         quizData = JSON.parse(document.getElementById('json-input').value);
         localStorage.setItem('quizData', JSON.stringify(quizData));
         refreshStudents();
-        alert("Đã cập nhật!");
-    } catch(e) { alert("Lỗi JSON!"); }
+        alert("Dữ liệu đã được cập nhật!");
+    } catch(e) { alert("Lỗi JSON: Hãy kiểm tra định dạng ngoặc và dấu phẩy!"); }
 }
 
 function exportSample() {
-    document.getElementById('json-input').value = JSON.stringify([{"q":"Khoản chi nào là thiết yếu?","a":["Xem phim","Đồ chơi","Tiền học phí","Đi du lịch"],"correct":2}], null, 2);
+    const sample = [
+        {"q":"Lập kế hoạch chi tiêu giúp ta chủ động tài chính. Đúng hay Sai?","a":["Đúng","Sai"],"correct":0},
+        {"q":"Khoản nào là nhu cầu thiết yếu?","a":["Đồ chơi","Tiền điện nước","Xem phim","Kẹo"],"correct":1}
+    ];
+    document.getElementById('json-input').value = JSON.stringify(sample, null, 2);
 }
 
-function resetSystem() { if(confirm("Xóa hết dữ liệu?")) { localStorage.clear(); location.reload(); } }
+function resetSystem() { if(confirm("Xóa toàn bộ dữ liệu hiện tại?")) { localStorage.clear(); location.reload(); } }
